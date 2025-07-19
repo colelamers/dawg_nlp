@@ -3,6 +3,7 @@ import java.util.*;
 
 public class dawg<K> {
     public Map<K, dawg_node<K>> node_map = new TreeMap<>();
+    public List<linked_dawg_node<K>> sentence_heads = new ArrayList<>();
 
     public void insert(List<K> nodes) {
         if (nodes.isEmpty()) {
@@ -16,6 +17,9 @@ public class dawg<K> {
             current = new dawg_node<K>(node_at_zero);
             node_map.put(node_at_zero, current);
         }
+
+        linked_dawg_node<K> head = new linked_dawg_node<>(current);
+        linked_dawg_node<K> cursor = head;
 
         // 1 == next node after root
         for (int i = 1; i < nodes.size(); ++i) {
@@ -31,11 +35,18 @@ public class dawg<K> {
                 current.add_child(node_at_i, next);
             }
 
+            // Linked list build-up
+            linked_dawg_node<K> nextLinked = new linked_dawg_node<>(next);
+            cursor.next = nextLinked;
+            nextLinked.prev = cursor;
+            cursor = nextLinked;
+
             current = next; // move to next node via reference
         }
 
         // Set final word in list as end node.
         node_map.get(nodes.get(nodes.size()-1)).canBeEndOfWord = true;
+        sentence_heads.add(head);  // Save head of sentence
     }
 
     public void insert(K prev, K current) {
